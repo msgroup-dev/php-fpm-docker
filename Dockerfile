@@ -1,23 +1,14 @@
-FROM php:7.3.9-fpm-buster
+FROM php:7.3.11-fpm-alpine3.10
 
-RUN apt-get update && apt-get install -y \
-        supervisor \
-        librabbitmq-dev \
-        libzip-dev \
-        zip \
-        libpng-dev \
-        ssh \
+RUN apk update \
+    && apk add --no-cache rabbitmq-c-dev libpng-dev \
+    && apk add --no-cache php7-pear php7-dev gcc musl-dev make
+
+RUN docker-php-ext-install bcmath pdo_mysql sockets gd exif \
     && pecl install amqp \
-	&& docker-php-ext-configure zip --with-libzip \
-	&& docker-php-ext-install zip \
-	 bcmath \
-	 sockets \
-	 pdo_mysql \
-	 exif \
-	 gd \
-	&& docker-php-ext-enable amqp
+    && docker-php-ext-enable amqp
 
-COPY --from=composer:latest /usr/bin/composer /usr/bin/composer
+RUN apk del php7-pear php7-dev gcc musl-dev make
 
 RUN chown -R www-data:www-data /var/www
 
